@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from checkin_kiosk.views import home_page, login_page, logout_page, register_page, appointment_page, checkin_page, \
-    information_page, oauth_page, exit_checkin_page
+    information_page, oauth_page, exit_checkin_page, doctors_update_tokens
 
 urlpatterns = [
     url(r'^$', home_page, name='home'),
@@ -13,5 +13,5 @@ urlpatterns = [
     url(r'^exit_checkin/$', exit_checkin_page, name='exit_checkin'),
     url(r'^information/(?P<patient_id>\d+)/', information_page, name='information'),
     url(r'^oauth/$', oauth_page, name='oauth'),
-
+    url(r'^doctor/$', doctors_update_tokens, name='doctor'),
 ]

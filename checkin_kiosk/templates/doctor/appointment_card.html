@@ -1,13 +1,15 @@
 <div class="card mb-2">
     <div class="card-header" style="background-color: {% if instance.current_status == 'Arrived' %}#4fc3f7{% elif instance.current_status == 'In Session' %}#ffb74d{% elif instance.current_status == 'Complete'%}#e0e0e0{% else %}#81c784{% endif %};">
         <div class="row">
-            <div class="col-2 mr-auto"><h5>{{ instance.patient_first_name }} {{ instance.patient_last_name }} </h5></div>
-            <div class="col-3 ml-auto"><h5>{% if instance.current_status == 'Arrived' %}Has been waiting for <h5 id="{{ instance.drchrono_appointment_id }}"> </h5>{% elif instance.current_status == 'In Session' or instance.current_status == 'Complete'%}Waited for {{ instance.waiting_duration}} minutes{% endif %}</h5></div>
+            <div class="col-2"><h5>{{ instance.patient_first_name }} {{ instance.patient_last_name }} </h5></div>
+            <div class="col-2 mr-auto"><h5>{% if instance.current_status == '' %} On the way {% else %} {{ instance.current_status }}{% endif %} </h5></div>
+            <div class="col-3 ml-auto"><h5>{% if instance.current_status == 'Arrived' %}Has been waiting for <h5 id="clock_{{ instance.drchrono_appointment_id }}"> </h5>{% elif instance.current_status == 'In Session' or instance.current_status == 'Complete'%}Waited for {{ instance.waiting_duration}} minutes{% endif %}</h5></div>
         </div>
     </div>
 
     <div class="card-block" style="background-color: {% if instance.current_status == 'Arrived' %}#b3e5fc{% elif instance.current_status == 'In Session' %}#ffe0b2{% elif instance.current_status == 'Complete'%}#f5f5f5{% else %}#c8e6c9{% endif %};">
         <div class="row">
+
             <div class="col-3 ml-auto">
                 <p> Scheduled at: {{ instance.scheduled_timestamp |time }}</p>
             </div>
@@ -60,9 +62,32 @@
             var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
             var seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            document.getElementById({{ instance.drchrono_appointment_id }}).innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+            document.getElementById("clock_"+"{{ instance.drchrono_appointment_id }}").innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
         }, 1000);
 
+    </script>
+
+{% endif %}
+{% if instance.current_status == '' %}
+    <script type="text/javascript">
+        // update appointment status to Arrived when patient check-in
+        setInterval(function() {
+
+            var data = {'appointment_id':{{ instance.drchrono_appointment_id }}};
+            $.ajax({
+            type:"POST",
+            url:"{% url 'kiosk:appointment' %}",
+            data:data,
+            dataType:'json',
+            headers:{'X-CSRFToken':$("[name=csrfmiddlewaretoken]").val()},
+            success: function(r){
+                console.log(r.appointment_status)
+                if(r.appointment_status == 'Arrived'){
+                    window.location.reload();
+                }
+            }
+            });
+        }, 1000*5);
     </script>
 
 {% endif %}

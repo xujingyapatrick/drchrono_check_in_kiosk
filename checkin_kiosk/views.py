@@ -2,6 +2,7 @@ import datetime
 import requests
 from django.contrib import auth
 from django.contrib.auth import authenticate
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.views import login
 from django.http import JsonResponse, HttpResponseRedirect
@@ -9,9 +10,9 @@ from django.shortcuts import render, redirect
 
 from django.views.generic import ListView
 
-from checkin_kiosk.decorators import doctor_mode_required
+from checkin_kiosk.decorators import doctor_mode_required, redirect_to_oauth_if_not_oauthed
 from checkin_kiosk.forms import LoginForm, RegisterForm, CheckinForm, InformationForm
-from checkin_kiosk.models import Doctor
+from checkin_kiosk.models import Doctor, Appointment
 from checkin_kiosk.utils.constants import AppointmentStatus
 from checkin_kiosk.utils.drchrono_api import update_patient_information, get_doctor_information_by_accesstoken, \
     refresh_oauth_token
@@ -29,6 +30,19 @@ def home_page(request):
     print context
 
     return render(request, "home.html", context)
+
+
+@user_passes_test(lambda u: u.is_superuser)
+def doctors_update_tokens(request):
+
+    qs = Doctor.objects.all()
+    print qs
+    if qs.exists():
+        for doctor in qs:
+            if doctor.token_expires_timestamp and get_PST_time_now()+datetime.timedelta(hours=6) > doctor.token_expires_timestamp and get_PST_time_now() < doctor.token_expires_timestamp:
+                refresh_oauth_token(request=request, doctor=doctor)
+
+    return JsonResponse({'success':'update doctors access token success'},status=200)
 
 
 def login_page(request):
@@ -93,6 +107,8 @@ def register_page(request):
 
     return render(request, "auth/register.html", context)
 
+
+@login_required
 @doctor_mode_required
 def oauth_page(request):
     # do oauth in register function and refresh on POST
@@ -172,6 +188,7 @@ class AppointmentListView(ListView):
         return context
 
 
+@login_required
 @doctor_mode_required
 def appointment_page(request):
     # appointment page on GET
@@ -181,6 +198,15 @@ def appointment_page(request):
     # change appointment status according actions in POST
     if request.method == 'POST':
         data = request.POST
+        print data
+        if request.is_ajax():
+            drchrono_appointment_id = data.get('appointment_id')
+            appointment = Appointment.objects.filter(drchrono_appointment_id=drchrono_appointment_id)
+            if appointment.exists():
+                appointment = appointment.first()
+                print 'here'
+                return JsonResponse({'appointment_status':appointment.current_status}, status=200)
+            return JsonResponse({'appointment_status':AppointmentStatus.EMPTY},status=404)
 
         if data.get('action') == 'start_session':
             r = update_appointment_status(request, data.get('appointment_id'), AppointmentStatus.IN_SESSION)
@@ -201,7 +227,7 @@ def appointment_page(request):
 
     return redirect('kiosk:appointment')
 
-
+@login_required
 def checkin_page(request):
     # patient checkin.
     request.session['is_doctor_mode'] = False
@@ -218,7 +244,7 @@ def checkin_page(request):
         return redirect('kiosk:information', patient_id=appointment.patient_id)
     return render(request, 'patient/checkin.html', context)
 
-
+@login_required
 def exit_checkin_page(request):
     # Make sure only current doctor can exit checkin mode by asking doctor credentials.
     form = LoginForm(request.POST or None)
@@ -235,7 +261,7 @@ def exit_checkin_page(request):
             return redirect("/")
     return render(request, "patient/exit_checkin.html", context)
 
-
+@login_required
 def information_page(request, patient_id):
     # update patient demographic information
     request.session['is_doctor_mode'] = False

@@ -15,24 +15,40 @@ def get_doctor_information_by_accesstoken(access_token):
     data = response.json()
     return data
 
-def refresh_oauth_token(request):
-    access_token = get_access_token(request)
+def refresh_oauth_token(request, doctor=None):
+    if doctor is None:
+        access_token = get_access_token(request)
+        refresh_token = request.user.doctor.refresh_token
+        client_id = request.user.doctor.client_id
+        client_secret = request.user.doctor.client_secret
+        doctor = Doctor.objects.filter(user=request.user)
+        if doctor.exists():
+            doctor = doctor.first()
+        else:
+            doctor=None
+    else:
+        access_token = doctor.access_token
+        refresh_token = doctor.refresh_token
+        client_id = doctor.client_id
+        client_secret = doctor.client_secret
+
     if access_token is None:
         return {"error":"Current doctor is not oauthed"}
+
     response = requests.post('https://drchrono.com/o/token/', data={
-        'refresh_token': request.user.doctor.refresh_token,
+        'refresh_token': refresh_token,
         'grant_type': 'refresh_token',
-        'client_id': request.user.doctor.client_id,
-        'client_secret': request.user.doctor.client_secret,
+        'client_id': client_id,
+        'client_secret': client_secret,
     })
+
     response.raise_for_status()
     data = response.json()
     access_token = data['access_token']
     refresh_token = data['refresh_token']
     expires_timestamp = get_PST_time_now() + datetime.timedelta(seconds=data['expires_in'])
-    doctor = Doctor.objects.filter(user=request.user)
-    if doctor.exists():
-        doctor=doctor.first()
+
+    if doctor is not None:
         doctor.access_token = access_token
         doctor.refresh_token = refresh_token
         doctor.token_expires_timestamp = expires_timestamp
@@ -86,7 +102,10 @@ def get_appointments_today(request):
     appointments = []
     appointments_url = 'https://drchrono.com/api/appointments'
     while appointments_url:
-        data = requests.get(appointments_url, headers=headers, params={'date': get_PST_time_now().date()}).json()
+        r = requests.get(appointments_url, headers=headers, params={'date': get_PST_time_now().date()})
+        if r.status_code != 200:
+            return {'error': 'get access token failed, please do oauth'}
+        data = r.json()
         appointments.extend(data['results'])
         appointments_url = data['next']  # A JSON null on the last page
 

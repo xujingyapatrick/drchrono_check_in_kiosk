@@ -61,6 +61,9 @@ AUTHENTICATION_BACKENDS = (
 AUTH_DRCHRONO_SCOPE='patients:read patients:write user:read user:write calendar:read calendar:write clinical:read clinical:write'
 REDIRECT_URI='http://localhost:8000/oauth/'
 
+LOGIN_REDIRECT_URL = 'http://localhost:8000/login/'
+LOGIN_URL='http://localhost:8000/login/'
+
 
 
 
@@ -96,7 +99,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
