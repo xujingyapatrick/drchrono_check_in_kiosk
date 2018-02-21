@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+<title>Home Page Template</title>
+{% block content %}
+<div class="container">
+<div class="row">
+    <div class="col">
+
+    <h4>Do authentication by clicking Authenticate!</h4>
+    <a class='btn btn-primary mx-auto' href="https://drchrono.com/o/authorize/?redirect_uri={{ redirect_uri }}&response_type=code&client_id={{ client_id }}&scope={{ auth_scope }}">Authenticate!</a>
+    <p></p>
+    {% if is_oauthed %}
+        <h4>Your app is already authenticated by drchrono.</h4>
+        <form method='POST' > {% csrf_token %}
+                <button type='submit' class='btn btn-primary mx-auto'>Refresh Authentication Token</button>
+        </form>
+    {% endif %}
+
+
+    </div>
+</div>
+</div>
+
+{% endblock content %}

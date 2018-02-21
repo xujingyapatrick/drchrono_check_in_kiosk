@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+<title>Client Register</title>
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <form method='POST'> {% csrf_token %}
+              {{ form }}
+              <button type='submit' class='btn btn-primary mt-2 mx-auto'>Submit</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

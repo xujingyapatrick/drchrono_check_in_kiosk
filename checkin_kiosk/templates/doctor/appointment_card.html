@@ -1,0 +1,68 @@
+<div class="card mb-2">
+    <div class="card-header" style="background-color: {% if instance.current_status == 'Arrived' %}#4fc3f7{% elif instance.current_status == 'In Session' %}#ffb74d{% elif instance.current_status == 'Complete'%}#e0e0e0{% else %}#81c784{% endif %};">
+        <div class="row">
+            <div class="col-2 mr-auto"><h5>{{ instance.patient_first_name }} {{ instance.patient_last_name }} </h5></div>
+            <div class="col-3 ml-auto"><h5>{% if instance.current_status == 'Arrived' %}Has been waiting for <h5 id="{{ instance.drchrono_appointment_id }}"> </h5>{% elif instance.current_status == 'In Session' or instance.current_status == 'Complete'%}Waited for {{ instance.waiting_duration}} minutes{% endif %}</h5></div>
+        </div>
+    </div>
+
+    <div class="card-block" style="background-color: {% if instance.current_status == 'Arrived' %}#b3e5fc{% elif instance.current_status == 'In Session' %}#ffe0b2{% elif instance.current_status == 'Complete'%}#f5f5f5{% else %}#c8e6c9{% endif %};">
+        <div class="row">
+            <div class="col-3 ml-auto">
+                <p> Scheduled at: {{ instance.scheduled_timestamp |time }}</p>
+            </div>
+        </div>
+        <div class="row" >
+            <div class="col-4">
+                {% if 'http' in instance.dashboard_url %}
+                    <a href="{{ instance.dashboard_url }}" class="btn btn-info ml-1 mb-1" {% if instance.current_status == 'Complete' %}style="background-color: #b2dfdb; border-color: #b2dfdb"{% endif %}>Appointment detail in Drchrono</a>
+                {% endif %}
+            </div>
+            <div class="col-2 ml-auto">
+                {% if not instance.current_status  or instance.current_status == '' or instance.current_status == 'Arrived'%}
+                    <form class="ml-1 mb-1" method='POST' > {% csrf_token %}
+                            <input type="hidden" name="action" value="cancel_appointment">
+                            <input type="hidden" name="appointment_id" value={{ instance.drchrono_appointment_id }}>
+                            <button type='submit' class='btn btn-primary mx-auto' onclick="onCancelAppointment(event)" >Cancel</button>
+                    </form>
+                    <form class="ml-1 mb-1" method='POST' > {% csrf_token %}
+                        <input type="hidden" name="action" value="start_session">
+                        <input type="hidden" name="appointment_id" value={{ instance.drchrono_appointment_id }}>
+                        <button type='submit' class='btn btn-primary'>Start</button>
+                    </form>
+
+                {% endif %}
+
+                {% if instance.current_status == 'In Session'%}
+                    <form class="ml-1 mb-1" method='POST' > {% csrf_token %}
+                        <input type="hidden" name="action" value="finish_session">
+                        <input type="hidden" name="appointment_id" value={{ instance.drchrono_appointment_id }}>
+                        <button type='submit' class='btn btn-primary'>Finish</button>
+                    </form>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+{% if instance.current_status == 'Arrived' %}
+
+    <script>
+        // Update the count down every 1 second
+        setInterval(function() {
+            var arrivedTime = new Date("{{ instance.arrive_timestamp.isoformat }}").getTime();
+            arrivedTime = arrivedTime + 8 * 1000 * 60 * 60;
+
+            var now = new Date().getTime();
+            var distance = now-arrivedTime;
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            document.getElementById({{ instance.drchrono_appointment_id }}).innerHTML = days + "d " + hours + "h " + minutes + "m " + seconds + "s ";
+        }, 1000);
+
+    </script>
+
+{% endif %}

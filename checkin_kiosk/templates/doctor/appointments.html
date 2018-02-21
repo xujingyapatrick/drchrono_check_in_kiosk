@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+<title>Appointment Requests</title>
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-3">
+                <form class="ml-1 mb-1" method='POST' > {% csrf_token %}
+                    <input type="hidden" name="action" value="sync_appointment">
+                    <button type='submit' class='btn btn-danger mx-auto'>Synchronize appointments with Drchrono</button>
+                </form>
+            </div>
+            <div class="col-3 ml-auto"><h4>Average waiting time: {{ average_waiting_time }} minutes</h4></div>
+        </div>
+        {% for obj in object_list %}
+            <div class="row">
+                    <div class="col">
+                        {% include 'doctor/appointment_card.html' with instance=obj%}
+                    </div>
+
+            </div>
+        {% endfor %}
+    </div>
+{% endblock content %}
+
+  {% block scripts %}
+    <script>
+        function onCancelAppointment(event) {
+            var r = confirm("Canceling appointment will delete appointment in Drchrono!");
+            if(r == false){
+                event.preventDefault();
+            }
+        }
+     </script>
+  {% endblock scripts %}

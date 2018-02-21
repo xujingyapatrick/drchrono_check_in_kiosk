@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+<title>Client Register</title>
+{% block content %}
+<div class="container">
+    <h4>Step 1: install app in Drchrono account</h4>
+    <div class="row">
+        <div class="col">
+        <p>1: login to Drchrono, then go to Account->API->New Application</p>
+        <p>2: Set Redirect URIS as: http://localhost:8000/oauth/</p>
+        <p>3: Choose API version:v2016_06</p>
+            </div>
+    </div>
+
+    <h4>Step 2: Fillout register form</h4>
+    <div class="row">
+
+        <div class="col">
+            <form method='POST'> {% csrf_token %}
+              {{ form }}
+              <button type='submit' class='btn btn-primary mt-2 mx-auto'>Submit</button>
+            </form>
+        </div>
+    </div>
+    </div>
+
+{% endblock content %}
