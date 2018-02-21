@@ -38,7 +38,7 @@ check-in page: patient check-in.
 ![patients_check-in](https://github.com/xujingyapatrick/drchrono_check_in_kiosk/blob/master/readme_figures/patient_mode/checkin.PNG)  
 demographic information page: use this form to update patient information or skip updating.
 ![patients_demographic information](https://github.com/xujingyapatrick/drchrono_check_in_kiosk/blob/master/readme_figures/patient_mode/information.PNG)  
-![patients_demographic information__1](https://github.com/xujingyapatrick/drchrono_check_in_kiosk/blob/master/readme_figures/doctor_mode/information_1.PNG)  
+![patients_demographic information__1](https://github.com/xujingyapatrick/drchrono_check_in_kiosk/blob/master/readme_figures/patient_mode/information_1.PNG)  
 exit page: exit patient mode.
 ![patients_exit](https://github.com/xujingyapatrick/drchrono_check_in_kiosk/blob/master/readme_figures/patient_mode/exit.PNG)  
 
