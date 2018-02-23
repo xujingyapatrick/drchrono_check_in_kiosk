@@ -28,6 +28,14 @@
             }
         }
 
+        function onLogout(event) {
+            var r = confirm("Logout?");
+            if(r == false){
+                event.preventDefault();
+            }
+        }
+
+
      </script>
   {% block scripts %}
 
